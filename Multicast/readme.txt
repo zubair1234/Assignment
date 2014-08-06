@@ -7,9 +7,9 @@ not shown in the figure due to the RYU GUI tools.
 
 Functions of files:
 ***********************************************************************************************************************
-The files "Ports, Request and Topology" are the inputs of our project, which are sent from the remote management platform.
+The files "Ports_input, Request_in and Topology_in" are the inputs of our project, which are sent from the remote management platform.
 
-The file "Fileoperation.py" encapsulates all the operations in the three inputs: Ports, Request and Topology.
+The file "topo_input.py" encapsulates all the operations in the three inputs: Ports, Request and Topology.
 
 The file "Paths.py" calculates single-source shortest path tree, and records all the paths.
 
