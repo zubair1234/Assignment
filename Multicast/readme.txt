@@ -11,9 +11,9 @@ The files "Ports_input, Request_in and Topology_in" are the inputs of our projec
 
 The file "topo_input.py" encapsulates all the operations in the three inputs: Ports, Request and Topology.
 
-The file "Paths.py" calculates single-source shortest path tree, and records all the paths.
+The file "stp.py" calculates single-source shortest path tree, and records all the paths.
 
-The files "Distancegraph.py and Determinepaths.py" are to construct multicast trees with  the KMB algorithm whose performance
+The files "spanning.py and multicast.py" are to construct multicast trees with  the KMB algorithm whose performance
 ratio is less than 2.
 
 The file "Generaterouting.py" maps the outputs of KMB algorithm into the substrate network.
