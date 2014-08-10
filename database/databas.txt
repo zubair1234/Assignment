@@ -1,0 +1,38 @@
+http://stackoverflow.com/questions/24821173/rexster-query-returns-no-such-property-v-for-class-com-thinkaurelius-titan-gr
+http://stackoverflow.com/questions/23190344/using-titan-graph-database-from-python
+http://stackoverflow.com/users/316082/liv2hak
+http://zcox.wordpress.com/2013/05/15/first-steps-with-titan-using-rexster-and-scala/ ## great download
+Run: sudo apt-get update
+Run: sudo apt-get install openjdk-7-jdk openjdk-7-jre p7zip-full
+
+
+-------------------------------------------
+wget http://s3.thinkaurelius.com/downloads/titan/titan-cassandra-0.3.1.zip
+unzip titan-cassandra-0.3.1.zip
+cd titan-cassandra-0.3.1
+bin/titan.sh config/titan-server-rexster.xml config/titan-server-cassandra.properties
+
+---------------------------------------------
+wget http://tinkerpop.com/downloads/rexster/rexster-console-2.3.0.zip
+unzip rexster-console-2.3.0.zip
+cd rexster-console-2.3.0
+bin/rexster-console.sh
+
+---------------------------------------------------
+cd titan-cassandra-0.3.1
+bin/titan.sh config/titan-server-rexster.xml config/titan-server-cassandra.properties
+
+memory 1.5 gb
+
+
+cd rexster-console-2.3.0
+bin/rexster-console.sh
+
+
+--------------------------------------------------------
+sudo apt-get install python2.7-dev
+sudo apt-get install libyaml-dev
+
+sudo pip install  https://github.com/espeed/bulbs/tarball/master
+
+-----------------------------------------------------------
