@@ -1,0 +1,8 @@
+Requirement
+
+#############################
+
+ sudo apt-get install python-networkx
+ 
+ http://forums.udacity.com/questions/11000761/drawing-graphs-with-python
+ 
