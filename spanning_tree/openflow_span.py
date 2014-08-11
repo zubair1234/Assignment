@@ -77,45 +77,45 @@ class configuration(app_manager.RyuApp):
         self.links = api.get_all_link(self)
         self.create_switch()
         self.create_switch_to_switch_links()
-        self.add_switch()
+#        self.add_switch()
     
-    def add_switch(self,switch):
-       for switch in self.switch_list:  
-           self.add_node(switch, name=switch, ports={})  
+#    def add_switch(self,switch):
+#       for switch in self.switch_list:  
+#           self.add_node(switch, name=switch, ports={})  
 
-    def add_port(self,switch,port_no,config,status):
-        self.node[switch]["ports"][port_no] = Port(port_no,config,status)
+#    def add_port(self,switch,port_no,config,status):
+#        self.node[switch]["ports"][port_no] = Port(port_no,config,status)
 
-    def add_link(self,loc1,loc2):
-        self.add_edge(loc1.switch, loc2.switch, {loc1.switch: loc1.port_no, loc2.switch: loc2.port_no})
-        self.node[loc1.switch]['ports'][loc1.port_no].linked_to = loc2
-        self.node[loc2.switch]['ports'][loc2.port_no].linked_to = loc1
+#    def add_link(self,loc1,loc2):
+#        self.add_edge(loc1.switch, loc2.switch, {loc1.switch: loc1.port_no, loc2.switch: loc2.port_no})
+#        self.node[loc1.switch]['ports'][loc1.port_no].linked_to = loc2
+#        self.node[loc2.switch]['ports'][loc2.port_no].linked_to = loc1
 
-    def is_connected(self):
-        return nx.is_connected(self)
+#    def is_connected(self):
+#        return nx.is_connected(self)
 
-    def egress_locations(self,switch=None):
-        locs = set()
-        if switch is None:
-            for s in self.nodes():
-                locs |= (self.egress_locations(s))
-        else:
-            try: 
-                for port in self.node[switch]['ports'].values():
-                    if port.possibly_up() and port.linked_to is None:
-                        locs.add(Location(switch,port.port_no))
-            except KeyError:
-                pass        
+#   def egress_locations(self,switch=None):
+#        locs = set()
+#        if switch is None:
+#            for s in self.nodes():
+#                locs |= (self.egress_locations(s))
+#        else:
+#            try: 
+#                for port in self.node[switch]['ports'].values():
+#                    if port.possibly_up() and port.linked_to is None:
+#                        locs.add(Location(switch,port.port_no))
+#            except KeyError:
+#                pass        
         
-   def makeGraph(self):
-   	self.switch_list = api.get_all_switch(self)
-        self.links = api.get_all_link(self)
+#   def makeGraph(self):
+#   	self.switch_list = api.get_all_switch(self)
+#        self.links = api.get_all_link(self)
         
-        for switch in switch_list:
-             graph.add_node(switch.datapath.id)
-        for link in links:
-            graph.add_edge(*e) 
-        return graph
+#        for switch in switch_list:
+#             graph.add_node(switch.datapath.id)
+#        for link in links:
+#            graph.add_edge(*e) 
+#        return graph
         
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def features_handler(self, ev):
