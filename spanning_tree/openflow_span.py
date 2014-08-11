@@ -38,7 +38,8 @@ class configuration(app_manager.RyuApp):
         super(configuration, self).__init__(*args, **kwargs)
         self.mac_table={}
         self.mac_to_port= {}
-        self.graph =nx.Graph()
+#        self.graph =nx.Graph()
+        self.graph =nx.MultiGraph()
         self.do_once=0
         self.switch_list={} # required for storing topology 
         self.links={}  # Required for storing topology
