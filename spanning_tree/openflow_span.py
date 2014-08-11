@@ -43,10 +43,10 @@ class configuration(app_manager.RyuApp):
         self.links={}  # Required for storing topology
     
     def create_link_edge(self,vertex1,vertex2):
-        edge = self.graph.edges.create(vertex1,"link",vertex2)
-        edge2 = self.graph.edges.get(edge.eid)
-        assert edge == edge2
-        edge2.save
+        self.graph.add_edge(vertex1,"link",vertex2)
+        #edge2 = self.graph.edges.get(edge.eid)
+        #assert edge == edge2
+        #edge2.save
     
     
     
