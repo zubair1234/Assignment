@@ -1,0 +1,9 @@
+Two type of Access gremin or rexter to the data base
+
+g = TitanFactory.open("/tmp/cassandra.titan")
+g.V('type', 'switch')
+g.V('type', 'port')
+g.v(108).out
+
+http://stackoverflow.com/questions/24012378/labels-vertices-and-edges-titandb
+http://stackoverflow.com/questions/24528057/actions-type-action-output-action-port-1-maxlen-0-as-keywords-to-get-or output at console
