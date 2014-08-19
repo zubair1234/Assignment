@@ -1,0 +1,149 @@
+%% entwurf.tex
+%%
+
+\chapter{Use Cases }
+\label{ch:Entwurf}
+%% ==============================
+% %=============================
+In this chapter, i will cover requirements and implementation detail of different network applications and use cases such as Routing, Switching, Firewall, Load balancing, Dynamic Host Configuration Protocol(DHCP), Traffic engineering and Fault Tolerance. These use cases are required  in order to fulfil network functionalities requirements for a successful migration of the campus legacy network to SDN network.Among many OpenFlow controllers that already exist for the public, i have chosen Ryu SDN controller written in Python for the experiment; and to create the SDN network topology, i have used VirtualBox and Mininet.Testing environment consists of Mininet, OpenFlow switch, Ryu SDN controller and wireshark. 
+
+Mininet an emulation software is used to create different topologies.Use cases and controller applications are tested using mininet platform.It is used to setup test environment for SDN based networks.Mininet is a network emulation platform create network including hosts ,switches , links on a single machine.Communication between external OpenFlow controller and OpenvSwitch is carried out using OpenFlow 1.3. The reason for choosing OpenFlow 1.3 is \ldots . Wireshark, a graphic utility, will be used to view, debug, dissect and monitor control packets   
+
+% %=============================
+
+% %=============================
+\section{Network Use Cases}
+% %=============================
+working of a simple topology\ldots
+
+Switch Registration to controller RYU controller opens TCP listening port 6633.I connected my mininet topology to the controller port 6633.My mininet topology consists of 3 switches which have links between them as can be seen in the above figure.Hence there are 3 connections one from each switch to the RYU Controller port.....SPF. \ldots 
+
+Topology Diagram for switching use case\ldots
+ 
+\begin{figure}
+	\centering
+	\includegraphics*[scale=0.75] {switching.png}
+	\caption{Network Topology for testing Use Cases} 
+\end{figure}
+
+
+\section {Switching}
+
+
+After connecting openvswitches with the controller initially there would not be any communication as the flow tables of the switches are empty and has no information. After a successful connection between openvswitch switches and controller has established.In order to achieve layer 2 switching the network controller is connected with OpenFlow switches. OpenFlow switches are configured and instructed by the network controller to perform various switching operations as discussed below.
+
+The topology shows four hosts, three Openvswitches and one Ryu SDN controller.Host 1 tries to ping Host 3 the switch receives the ping packets however the switch flow table does not have any flow entries to handle the packets so switch ask the Ryu how to handle it. This is packet-in event and the switch send the packet that encapsulated by the openflow message to the controller. Ryu passes the openflow messages to analyse what openflow event occurs in this case packet-in event occurs.Next Ryu calls packet in handler that is registered in application switch. It follows the packet in handler of the application which result the flow entry to be  installed in the table of the switch.As a result host b can receive the ping packet.In this case the packet which is openflow switch than reactive flow occurs. this may result in performance degradation to resolve this rules can be installed before. 
+
+Initially switch does not have any MAC entry in the table. Switch learns the MAC address of Host A by examining packet in message and the source address. Since, Host B MAC address is not installed in the flowtable of the switch. The layer 2 frame is flooded by the Ryu controller to all the port except the input message port.And similarly switches forward the request to all ports except the controller. Host B than reply back and the MAC entry with the port information is installed in the flow table after packet-in message. Next time the communication between Host A and Host B will be done on the basis of the entries and it does not need to go to controller.
+
+
+\subsection {Arp Handler }
+
+If the destination is not known to the switch, the packet is flooded. This mechanism is known as Address Resolution Protocol(ARP). In order to resolve the issue of MAC address and to ensure the switching is working fine , a handler is written in the switch application that takes care of ARP request. ARP handler can be called in two ways. First Host A broadcast IP to MAC address resolution request of Host B or if the switch flow table does not contain entry of Host B Mac address. In both cases the message is sent to the controller as packet-in event and the response is according to the ARP handler defined in the switch application.
+
+Host A sends broadcast ARP request packets to discover the MAC address of Host B with a known destination IP address.A rule is installed in the switch to send ARP request to the controller. Controller than instructs the corresponding switch to flood the packet and the broadcast ARP request reaches the Host B attached to the switch 2. The Host B after matching its IP address in the packet will reply back with a unicast ARP reply to the source MAC included in the ARP request packet. The switch would have learned the egress port of the source and therefore it is not flooded again.
+
+
+\subsection{ICMP Handler}
+
+Internet Control Message protocol is usually use to check the connectivity of the devices using ICMP echo request and ICMP echo reply. In our case when Host A sends ping request to Host B , it is sending ICMP echo request. After the ARP issue is resolved through ARP handler , switch needs to know about what to do about ICMP packet content.Since there is no rule installed to deal with ICMP packet the switch sends this message to the controller. During the ARP session, the controller has learned the location of the Host B and therefore instruct the switch via OpenFlow protocol to add a flow for ICMP traffic.Switch 1 installs the flow and forward the packet to switch 2 which also sends the packet to controller and similarly install the flow and finally the ICMP request is send to the controller. ICMP reply from host b to host a is done in the similar way.
+
+
+\subsection{Requirement and Implementation }
+
+For the switching module to work correctly it is important to handle MAC and ARP request in an effective way.In my implementation switching module has been implemented as a Ryu API that runs on the top of Ryu SDN controller.The switching algorithm  works in the following way. Mac table of the controller is updated using source address and switch port of an incoming frame. Packets are examined by the controller as packet-in messages which are dropped if they are not required such as link layer distribution protocol(LLDP). In case the destination address is not present in the MAC table the flood out message is sent to the switch which sends the packet to all its ports except the incoming port.To avoid loop the switch is instructed to drop the packet if out put port is same as the input port. Packet-in messages of special types such as ARP or ICMP is taken care by ARP and ICMP handler respectively which are embedded in switch function. Switch algorithm install flow table entry in the switch in order to send the frame to appropriate port.Flow entries are sent by the controller to the switch as packet-out messages.
+
+
+\subsection{Traffic Flow}
+
+Traffic Flow table 
+
+%%==============================
+\section{Routing Use Case}
+%%==============================
+The other important use case to achieve network functionality for the SDN network is routing.The routing use case involves providing the shortest path forwarding with in the OpenFlow network.In order to implement routing , a test environment is created using custom topology that includes three switches and four hosts which can be seen in figure mentioned below. This is a looped topology and can be used for testing use cases like spanning tree, load balancing, traffic engineering.
+
+\begin{figure}
+	\centering
+	\includegraphics*[scale=0.75] {Drawing2.png}
+	\caption{Network Topology for testing Use Cases} 
+\end{figure}
+
+\subsection{Topology Discovery}
+
+Topology discovery is a process of discovering and mapping network devices used by the controller to build the network model. Through topology discovery the controller is aware of the changes happening in the network like addition and failure of links, host and nodes. This function helps controller to maintain a network wide topology.
+
+For our test topology, Link layer distribution protocol(LLDP) frames are sent out periodically as packet out messages by the controller to switches 1 ,2 and 3.These LLDP messages are than sent out by the switches to all connected ports. In reply a packet in LLDP message is routed back to the controller. The controller examines the content through which it is able to identify links between switches 1, 2 and 3. This information is used to maintain adjacency list of network link and build a complete topology overview. Controller is also able to update network topology via LLDP frames in case of topology change or network failure. When interface link between the switches break down the controller is unable to receive the LLDP frame within specified time. Through timeouts and changed events controller update the global view of the network.
+
+Traffic Flow table \ldots
+
+Topology application is implemented as a discovery functionality for the routing application. LLDP packet in message handler is implemented to update the adjacency list of the switches.Handler is used to handle two type of topology change first If LLDP message is not received within a set time frame topology is rediscovered. Secondly, in case of link failure an OpenFlow port modification event is generated and send to controller by the switch through OpenFlow protocol. This  event is also handled by the LLDP function and which than recalculates topology. Functionality involving topology change notification and the new update topology is taken care by OpenFlow port status handler.The topology is cached in the variables as dictionary values. 
+
+
+\subsection{Spanning Tree}
+
+The test topology shown in figure is a looped one have cyclic connectivity between switches 1, 2 and 3. The loop issue in the topology needs to be addressed. If loops are allowed in the topology packets that are flooded would remain in a cycle as they are being broadcast all over again and again. We can utilize the loop to our use by shutting down the redundant interface that is causing loop and routing the traffic through the blocked interface only in case of link failure.
+
+Loop free technology for our test environment is achieved by having an agreement among the switches by shutting down interface between switch 2 and 3.Switches use the active topology of s2-s1-s3 path when forwarding packets to the destination host with redundant link s2-s3 is disabled. In an event of network failure switches reactivate the disabled links of s2-s3 and be able to reconfigure the topology to use the redundant link through recalculation of spanning tree.
+
+Spanning tree is calculated on the extracted topology from the discovery module. One approach include implementation of spanning tree protocol 802.1D for our test topology. Layer 2 loops are cleared by shutting down certain switch interfaces and enabling redundant switch ports in a blocked state.The selection/election of the root nodes, ports and spanning tree path is computed through Bridge protocol data unit(BPDU) which contains field such as priority and MAC address. The Root Bridge (Switch 2) of the Spanning Tree is selected due to high priority. The other non-root switches s1 and s3 are then branched out from the root switch, connecting to other switches.In case of topology change STP is recalculated and redundant path is chosen.In case there is failure the controller is not able to receive BPDU and after certain time it then recalculate BPDU process.
+
+Spanning tree protocol is not designed for the centralized network, therefore i implemented a minimum spanning tree for a centralized network. A graph consisting of nodes and active links is stored maintained and built by the discovery application. Kruskal algorithm is applied on the stored graph to calculate minimum spanning tree for the active links in order to eliminate cycles in the test topology. The resultant spanning tree path is used for forwarding of the packets.
+
+
+\subsection{Time to Live Handler}
+
+Time to Live (TTL) function consist of numerical value which is used to check whether the packet has been in the network for long time. TTL prevents the packet to circulate indefinitely in the network by destroying the datagram when the TTL value in the packet reaches 0 .TTL value is decremented Open flow protocol 1.3 supports TTL function.
+
+TTL function implemented in the routing application installs a flow in the switch to decrement TTL value.When an invalid TTL value<1 packet is received by the switch packet is sent to the controller as the it is rejected by OpenFlow pipeline. Ryu check the content of the packet in message , if it matches to INVALIDTTL condition mentioned in the TTL function response with a Time to Live exceeded is sent on the same port. 
+
+\subsection{Implementation and Requirement}
+
+Topology discovery, spanning tree and TTL handler all serve important functionality for the routing module. Routing application is implemented using all of the three functionality. Discovery function discovers the topology and store in the form of graph.After the graph is updated, a spanning tree for it is created. The spanning tree module utilizes the network topology to prevent network loops and calculate minimum spanning tree.For our test topology path s2-s1-s3 is selected as spanning tree path.The spanning tree is created using Kruskal's
+algorithm using disjoint sets and tree based union-find data structure.After the spanning tree is created, it is scanned and all the ports that appears in it are considered valid. Other ports are considered as forbidden since they cause a loop. In any case, ports which are not connected to switches are assumed to be connected to hosts and therefore are always being considered as valid ones.Routing module sends packets between source and destination along the loop free path.
+ 
+
+\subsection{Traffic Flow}
+
+%%==============================
+\section{Firewall}
+%%==============================
+
+A Firewall is used to control the flow of ingress and egress traffic in the campus network. The system analyses data packets for parameters like L2/L3 headers (i.e., MAC and IP address) to filter network traffic. A firewall  acts as a barrier between a trusted, secure internal network and another network (e.g. the Internet) which is supposed to be not very secure or trusted.
+Firewall based on source MAC address is implemented on the switching topology of figure . Controller checks source MAC address against specific firewall rules before forwarding to the network.
+
+\subsection{Requirement and Implementation}
+
+A firewall switching application is developed that runs over Ryu controller without the need of a dedicated hardware.In order to have source MAC based firewall functionality, change in switch function is required. A hash table that stores key value pairs in particular should be included.It is also required that the hashtable need to match the switch identifier and source mac address to true / false value indicating whether to drop the packet or not. The controller decides to drop the packet if the firewall entry maps to false or in case there is no firewall entry where as controller forwards the packet if there is a firewall entry that maps to 'True'. 
+New functionalities can also be added to the firewall for instance filtering of packets on the bases of IP address, protocols and ports.The rules can be added via built in Rest API of Ryu controller \ldots    
+
+%%==============================
+\section{Fault Tolerance}
+%%==============================
+
+Fault tolerant based SDN architecture is necessary to address reliability concern involving single point of failure.In this use case two instance of Ryu controller running on two separate machines to form  a unified control plane. The mininet and topology run on system 1 but the switches are able to initiate connection to both Ryu1 and Ryu2. On a switch one of the controller will be assigned as Master contoller.
+
+In order to implement fault tolerance in Ryu architecture a database backed Ryu controller will be used that will install flow.This architecture includes to model a network topology using Titan Graph DB. I will program the Titan Graph DB from my python program using bulbs package for that.
+
+
+%%==============================
+\section{Load Balancing}
+%%==============================
+
+
+
+%%==============================
+\section{Traffic Engineering}
+%%==============================
+
+A Ryu module will be written to complete a traffic Engineering on a mininet topology.The topology consists of 3 switches 1,2 and 3, they are connected with each other. 2-3 link is the shortest path between Host 1 and Host 3 and 2-1-3 link is another path. Normally, traffic go through 2-3 link. But when 2-3 link overload, traffic should go through 2-1-3 link. So, the real-time bandwidth of A-B link will be the key to my module.
+
+
+%%==============================
+\section{Dynamic Configuration of Hosts}
+%%==============================
+
+In this case the Ip address to the hosts will be assigned dynamically.Dynamic host configuration protocol allows IP configuration of the host dynamically from IP pool. In order to successfully install DHCP the controller needs to take care of the packets that were sent to it. This includes DHCP discovery, DHCP request, DHCP offer and DHCP acknowledgement.
+
+Implementation of Proactive rule in Open flow switch is required that will forward the DHCP messages to the Ryu controller. The DHCP server will be connected to Ryu SDN controller and  will work by intercepting DHCP packets on Ryu SDN controller. The switch will forward the DHCP packet to Ryu, at which point the DHCP Server module in Ryu will handle the DHCP message and send a response out the port on which the original packet was received.
+
