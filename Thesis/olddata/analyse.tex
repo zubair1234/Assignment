@@ -1,0 +1,62 @@
+%% analyse.tex
+%%
+\chapter{Background}
+\label{ch:Analyse}
+\section{Introduction}
+%% ==============================
+This section features theoretical aspect about the technologies and tools that are used to reach the goal. In the following section i introduce the concept of Software Defined Networking (SDN) and OpenFlow. In section 2.3 SDN controllers are discussed and one of many controller is selected.    
+
+%% ==============================
+\section{Software Defined Networking (SDN)}
+%% ==============================
+\label{ch:Analyse:sec:Abschnitt1}
+
+Software Defined Networking(SDN) is a concept that involves separation of control plane from the data plane. SDN is an innovating technology that can be used to solve the issues involved in the legacy networks.In SDN, the control plane is the logic that controls the forwarding behaviour in the network.Control plane can be seen as the network brain as it is responsible for making decisions involving the path and the way the network traffic is sent. Control plane is also involved in populating switching tables according to defined network protocols and which can also help in achieving tasks of load balancing and firewall configuration in the network.Data plane on the other hand forwards the traffic according to the logic of the control plane. Examples of the data plane tasks are Internet Protocol (IP) forwarding and switching\cite {OpenFlow}.
+
+The key feature of SDN architecture, decoupling of control from data plane, leads to many advantages over legacy networks. The control plane is directly programmable as it is decoupled from the forwarding functions of the data plane.SDN networks are more agile as the network administrator is able to dynamically manipulate traffic flow as per demand and requirement.Separation of data and control plane also help to centrally managed the network as the intelligence control is logically centralized in software based SDN controllers. A global view of the network is maintained by the SDN based controllers, which appears to applications and policy engines as a single, logical switch.Another key advantage of SDN network is that each of the control or data plane can evolve independently and are not vendor specific or dependent.The software control of the network can be managed independently of the hardware\cite {OpenFlow}.All of these advantages leads to promising SDN benefits that are applied in proper and practical way in this thesis.  
+
+A basic SDN architecture consists of three abstraction layers: application, control and infrastructure layer.The SDN architecture differ from legacy solutions by building networks from  these three layers. Figure 2.1 graphical represent such a SDN architecture..
+
+\begin{figure}
+	\centering
+	\includegraphics*[scale=0.30] {sdn.png}
+    \caption{Graphical Representation of the SDN Architecture} 
+\end{figure}
+
+The infrastructure layer behave as the foundation for a SDN architecture. It consists of physical network devices such as switches and virtual elements such as routers running on the same physical switch. These network devices are responsible to forward traffic according to the rules installed in their flow table by the controller.These devices use the OpenFlow protocol as a method to implement the traffic forwarding rules.\cite{Hp}. Above the infrastructure layer there is control layer without which the network devices cannot receive instruction. The control plane is separated from the underlying infrastructure to provide a single centralized view of the entire network. The control layer communicates with the infrastructure layer via OpenFlow interface.In addition to this, control layer consist of a centralized controller that provide different type of network functionalities such as access list for firewall protection and topology discovery. This layer is also responsible to control charged with network related control.At top of SDN architecture stack there is an application layer that consists of user defined business applications that interact with control layer.
+
+Application layer consists of north bound application programmable interface(API)  that enables communication between the control layer and business application layer.Northbound API do not follow any predefined standard and presents a network abstraction interface to the application and management system. Northbound APIs can be programmed to enable basic network functions like loop avoidance, path selection, switching and routing. They can also be used to develop orchestration tools to manage network services in the cloud.On the contrary, south bound API is used for the communications between the control layer and infrastructure layer.OpenFlow, is one of the south bound API interface that can be used by the controller at the control plane to define the behaviour of the switches and network devices at the infrastructure layer. 
+
+OpenFlow is one of the key technology to realize SDN. It provides an open interface between control and data plane.In OpenFlow based SDN architecture both controller and switches need to support OpenFlow protocol through which they can communicate with each other.Controller speaks with openflow switch in a secure channel and the protocol effectively instructs openflow switch to update the openflow entries to take different actions on various traffic that passes the switch.Secure channel is to update the flow table and all the logic of how the flow table entries are populated and updated all the smart of the network is resident at the controller and the switch job is to forward the traffic based on the flow table entries the controller installs. OpenFlow enables an SDN external controller insert forwarding rules in a switch's match-action tables, rather than having switch learn its own rules. 
+
+Use of Open Flow (SPF)
+How I will be using (OpenFlow)
+OpenFlow operation in essence
+
+%% ==============================
+\section{SDN  Controllers}
+%% ==============================
+\label{ch:Analyse:sec:Abschnitt2}
+
+OpenFlow SDN controllers communicate with switches through OpenFlow protocol. All the logic and smartness of the behaviour of the network is controlled at the controller.There are many different type SDN controllers some of them are NOX/POX, Floodlight. OpenDaylight, Pyretic, Frenetic, Procera, RouteFlow and Trema.Before selecting the type of SDN controller there are many consideration that is required for an appropriate controller.One of them is programming language which in some cases can also affect the performance\cite{Hp}.Second is the stability of the code to avoid system crash more often.In case of Open source SDN controller they should have very active base community support.Finally, the foremost important aspect involves the architecture of an SDN controller that is based on support of SouthBound API, Northbound API/the policy layer , support for OpenStack or multitenant cloud environment and whether the controller is intended to be used as Operating System or was designed for specific purpose like education, research or only production.
+
+\subsection { Types of SDN Controllers}
+
+I will discuss some of the controllers. NOX is the first generation openflow controller , key features include opensource stable and widely used.There are two flavours of nox , nox classic original nox supported by C++ and python the latest NOX is C++.It is fast and well maintained. NOX users implement control in C++. Nox itself support openflow 1.0 and cdpt supports different openflow versions.Programming model , for topology changes than the user write the event planner. NOX is good performance. POX is python implmentation of NOX. Advantage of NOX is widely used, maintained and supported and is relatively easiy to use and write. Disadvantage of POX is performance. POX is mainly use in research , experimentation and doucmentation.
+
+\subsection{Ryu SDN Controller}
+
+Ryu supports All version of openflow and aims to be Operating System. Good Rest API
+Flood light is an OpenSource java controller that supports openflow  version 1.0.Maintained by BigSwitch. Production level and provides support to openstack. However has steep learning curve , production level performance support or Rest API.Another controller in active is openday light. It is to support common industry platform supported platform.Robust, extensible open source database. common abstraction for northbound capabilities. Advantages are Industry acceptance, integration with openstack , cloud application disadvantages , complex learning. Use if you know java and you need production-level performance and , support functionalitis cloud applications, Openstack etc .Modular functions that are supported by vendors 
+
+Summary 4.2 last.
+
+Ryu is an OpenSource SDN framework. Ryu is a platform to build  SDN applications to manage the network.to realize this it  well defined north bound api and useful libraries.It becomes easier for the developer to develop  and implement the own SDN applications on top of Ryu.  It seems like operating system as it builds application on top of the ryu to control our network resource. This is open flow source and its is implemented on python.Ryu development is open.Ryu is to become defact sdn framework , and provide cloud computing . openstack is an example. ryu is designed and implemented in production use. in large production environment using code quality, functionality. 
+Features of Ryu is generality as it is vendor-neutral, supports open interface ( e.g OpenFlow) support by many switch vendors.It is agile as framework for an application development and is a component base controller. Ryu architecture can be seen as below
+
+Architecure 
+
+It can be seen.It not only support openflow but also other. we can control existing devices by RYU as it supports other protocols.Ryu Architecture can be seen.  supported libraries with internal. network operator can get switch state and flows through rest API and openstack provide sources for rest api. two development style for ryu when you implement.It has some built in APIs which we can use for our applications example topology discover , routing and firewall.for example switch state.two development style , business application at top of ryu to define own api. it communicate with user defined api. we can use external or internal api.
+
+
+\subsection{Introduction to Ryu Modules}
