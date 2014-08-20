@@ -1,0 +1,26 @@
+%% Einleitung.tex
+%%
+\chapter{Introduction}
+\label{ch:Introduction}
+\section{Motivation}
+%% ============================
+Software and hardware control of the traditional network cannot be managed independently as the functionality of its basic building blocks, for instance, switches, hubs and routers are implemented with dedicated network appliance and hardware.These devices evolve slowly as most of their hardware and software components are closed and are proprietary boxes .Secondly, these devices cannot be centrally managed and have to be configured individually.Provisioning and roll-out mechanism of traditional devices is time consuming and also prone to errors\cite{OpenFlow}.
+To address these issues, networking researchers have developed an open standard platform known as OpenFlow\cite{OpenFlow}.OpenFlow has provided a standard interface to install and configure rules in OpenFlow based network switches.These rules are installed in switches using programmable centralized controller. 
+
+Software-Defined Networking(SDN) is an emerging technology that is dynamic, software-centric, centrally manageable , cost-effective and highly adaptable making it an ideal alternate to traditional networking\cite{OpenFlow}.A SDN architecture decouples the network control plane from the forwarding data plane and uses OpenFlow protocol for communicating between controller and switches . Due to the advantages of SDN over legacy networks , OpenFlow based SDN solutions are being deployed in data center, enterprise and campus networks.However, there are  limitations to SDN based real networks such as scalability and reliability  which will be addressed in my thesis.
+%% ==============================
+\section{Objective}
+%% ==============================
+\label{ch:Introduction:sec:Objective}
+In my thesis i am deploying and evaluating SDN solution in real networks. My task is to migrate selected functionality i.e., switching, routing, firewall of an exemplary traditional network into SDN with adequate interfaces. Due to its recent deployment in production networks SDN concepts still need maturation. Best practice for tackling various limitations and problems in SDN domain are to be addressed in an efficient way. For instance, implementing network policies  that deals with access control and routing policy that deals with traffic paths are not solved in a satisfying way.
+The "One Big Abstraction" is a concept that allows defining efficient rules for the network in a centralized way\cite{TB98}.SDN solution will also include  this "One Big Abstraction" concept. Network Management requirements for SDN networks will also be researched in this thesis.
+%% ==============================
+\section{Thesis Structure}
+%% ==============================
+\label{ch:Introduction:sec:Thesis Structure}
+In order to deploy SDN solution firstly i will use an emulator software such as Mininet to test the OpenFlow based switches ,controller and application functionalities which will later be implemented in the real networks. Major portion of the first  phase includes developing and testing applications for  use cases such as routing , switching and firewall.In second part of my thesis migration of network topology in mininet will be carried out and the developed services will be tested on the topology. Final phase would include interpretation results.  
+ 
+In my thesis i will be using Hybrid switches that support both OpenFlow protocol and normal legacy protocols inorder to support traditional operations of Ethernet L2 switching, IPv4 routing, Qos support, traffic engineering , access list as well as open flow protocols which exposes flow-based forwarding state.     
+OpenFlow based networks gives a remote controller the ability to manage the behaviour of network devices i.e. configurations.
+
+Structure of document , In first chapter , in second chapter and so\ldots
