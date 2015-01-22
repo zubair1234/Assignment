@@ -1,0 +1,317 @@
+%% entwurf.tex
+%%
+
+\chapter{Use Cases and Requirements }
+\label{Chapter: Use Cases and Requirements}
+%% ==============================
+% %=============================
+This Chapter presents applications based network scenarios in relation with a medium sized network. Use cases and the requirements are used for developing an SDN solution for a small-to-medium sized network. The use cases provide an insight to the technical requirements for designing an SDN system. Moreover, it develops an understanding for managing the OpenFlow networks, forwarding of the OpenFlow traffic, and network availability in case of outages. I have used Virtual Box and Mininet to create different network scenarios consisting of OpenFlow switches and Ryu SDN controller. Wireshark, a graphic utility to view, debug, dissect, and monitor control packets is used as a network debugging tool.
+
+The Chapter is organized as follows: Use cases are presented in Section \S\ref{Chapter: Use Cases and Requirements} where as their requirements are discussed in Section \S\ref{Chapter: Use cases and Requirements:Section:Requirements of Use Cases}.  
+    
+% %=============================
+\section{Use Cases for Software-Defined Networks}
+% %=============================
+\label{chapter:Usecases and Requirements:section: Network Usecases}
+
+Use cases describe real time network scenarios for a small-to-medium sized networks. The use cases provide specific network functionalities that can be optimized using the SDN technology.
+
+\subsection{Scenario: Traffic Forwarding in Software-Defined Networks}
+\label{chapter:Usecases and Requirements:section: Traffic Forwarding}
+
+SDN should support traffic forwarding feature in any small-to-medium sized network. SDN applications can provide Layer-2 switching and Layer-3 routing  that fulfils the core requirements of forwarding the network traffic. Moreover, these core functionalities builds the foundation for other use cases and requirements such as re-routing use case for which routing is a prerequisite requirement. A simple Layer-2 forwarding use case is described according to the network topology of Figure \ref{fig:Basic}. Mininet topology consisting of OpenFlow switches registers to RYU controller at TCP listening port 6633. After initial handshake the switches and the controller are ready to interact with each other through the OpenFlow protocol. However, the network hosts cannot communicate with each other as there is no forwarding flow entry in the OpenFlow switches. The controller configures and instructs the OpenFlow switches according to the user defined SDN applications such as Layer-2 switching.
+
+\begin{figure}
+	\centering
+	\includegraphics*[scale=0.7] {chapter4_simple_ryu}
+	\caption{An OpenFlow network}
+	\label{fig:Basic} 
+\end{figure}
+
+
+The network topology given in \ref{fig:Basic} consists of four hosts, three OpenFlow switches and the Ryu OpenFlow controller. Host1 (H1) connected to Switch2 (Sw2) wants to communicate with Host3 (H3) associated with Switch3 (Sw3). Sw2 receives the ARP request from H1 and queries the Ryu controller for handling the ARP packet. This is a packet-in event where the switch sends the frame/packet encapsulated by the OpenFlow message to the controller. The Ryu controller calls the packet-in handler function registered in the switching application. According to the programmed instructions, the controller stores the source MAC address in the MAC table and instructs the Sw2 to broadcast the ARP packet at Layer-2.  H3 receives the ARP packet through Sw3 and sends the ARP reply. Sw3 forwards the ARP response of H3 to the SDN controller. The controller stores the H3 MAC address and its location ( Sw + connected port) in the MAC table and forwards the ARP reply to H1 through Sw2. The controller installs the forwarding flow entries along the switching path in Sw2, Sw1, and Sw3. H1 and H3 are now able to communicate with each other according to the flow entries installed in the OpenFlow switches.
+
+
+\subsection{Scenario: Routing in Campus Networks}
+\label{Chapter:UseCases and Requirements section: Usecase OpenFlow Routing}
+Medium sized networks such as campus networks are composed of multiple buildings, interconnected with a central operations center. Components of the campus network include a campus wide backbone including Local Area Network (LAN) with an egress point to the Wide Area Network (WAN) that is associated with a data center. The network includes logical network/data center partitioning for different departments, administration facilities, or campus wide IT resources. Furthermore, the campus network  comprises multiple network nodes having a looped network architecture as shown in Figure \ref{OpenFlowv1.1}. Layer-2 traffic forwarding only provides switching functionality between the hosts. However, the Layer-2 switching mechanism is not a viable solution for a campus network as flooding of Layer-2 frame can cause broadcast storm in a looped network. Moreover, the network performance is degraded as the Layer-2 frame is moving in an endless network cycle while consuming the processing functionality of the OpenFlow switches. The hosts in the campus network belongs to different subnets and require a Layer-3 forwarding mechanism such as routing. The process involves moving a packet from a source to destination in the campus network while avoiding loops.
+   
+Routing solution for an SDN not only support forwarding of Layer-3 traffic but also allow a fine-grained control over the network and traffic flows as compared to legacy campus networks. Traditional routing in campus networks calculates a static next hop as forwarding table for every switch. Instead of using these pre-calculated paths to route traffic, an OpenFlow network can dynamically install switches flow table entries after reacting to the initial IP packet. Moreover, the controller maintains the current flow statistics that allows it to react differently under congestion. For instance, the controller can install new routes on the least congested paths. The ability to dynamically route new flows is not the only advantage the SDN paradigm offers; the process of dynamically adding and removing flow table entries can also be used to re-route existing flows from a congested link to less congested links. OpenFlow routing is a prerequisite requirement for other use cases including network recovery in case of outages.
+\begin{figure}
+	\centering
+	\includegraphics*[width=\textwidth] {looped_network_2_server}
+	\caption{Network architecture of a medium sized network }
+	\label{Figure: Chapter: Use case Section: Use cases for small to medium sized network}	
+\end{figure}
+
+\subsection{Use Case: Optimal Routing}
+\label{Chapter:Use Case and Requirements section:Shortest Path Routing}
+
+Routing provides the reachability path between the source and destination hosts. However, there can be multiple paths to reach the destination which requires selecting an optimal path. For instance, as given in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} there are multiple routing paths between H4 and H6. The paths are highlighted in Figure \ref{Figure: Chapter: Use case Section: Optimal Routing} where the primary path of Sw3-Sw1-Sw5 is coloured green where as the secondary path comprises directly connected Sw3 and Sw6. Both of the routing paths have same bandwidth but different number of nodes. Moreover, the packet round trip time of the mentioned paths are different. This is because the packet experiences high latency and propagation delay along the path Sw3-Sw1-Sw5 as compared to the latter path of Sw3-Sw5 due to distance metric. Number of hops along the primary path increase the total processing time of the packet.
+
+\subsection{Use Case: Rules Placement in Software-Defined Networks}
+\label{Chapter:Use Case and Requirements section: Flow Installation in an SDN Network}
+
+Flow tables are a scarce commodity in an OpenFlow switch as it supports smaller memory size with limited number of flow table entries. If the flow entries exceed the maximum limit, the OpenFlow switch starts dropping packets as it is unable to process the instructions from the controller. This can lead to connectivity loss with other network entities such as hosts, servers etc. In Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} Sw1 is the central node providing reachability paths to different OpenFlow switches. It is considered that the flow entries of Sw1 are reaching the maximum threshold which can eventually lead to disruption of connectivity between different network hosts. For instance, the connectivity path for switches Sw2, Sw3, and Sw5 with the server located at Sw4 can be disrupted if the number of entries exceed the maximum threshold.    
+
+% %The shortest path routing computes the path on the basis of the Two types of routing exist, the first one is spanning tree based routing that calculates a routing path in the spanning tree. That do not take into account the distance between the two nodes. On the contrary, shortest path routing enables one host to transverse the path and to reach through shortest path. This results in low latency as traffic on multiple hops can increase the latency. To achieve shortest path minimum distance between the source and distance is calculated. The metric can be of two types the first as minimum number of hops and in second case it could be related to bandwidth and other traffic parameters.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics*[width=\textwidth] {looped_network_2_server_rerouting}
+	\caption{OpenFlow Re-routing in an SDN Network}
+	\label{Figure: Chapter: Use case Section: Fault tolerant}	
+\end{figure}
+
+\subsection{Use Case: Reliable and Fault Tolerant SDN Architecture}
+\label{Chapter:Use Case and Requirements section:Reliable and Scalable SDN Architecture}
+
+Traditional networks have a resilient architecture consisting of redundant nodes, multiple paths, and re-routing mechanism to ensure network availability in case of outages. Similarly, an outage can disrupt the network services in an OpenFlow network and require a fault tolerant architecture. Generally, there are three fault domains in an SDN based networks.
+
+\begin{description}
+	\item[$\bullet$] Data plane, where a switch or link fails
+	\item[$\bullet$] Control plane, where the connection between the controller and switch fails,
+	\item[$\bullet$] Control layer where the controller fails.	
+\end{description}
+
+Among the three mentioned SDN fault tolerant domain, the data plane outage is the most frequent event which involves failure of links and nodes causing disruption in network services \cite{Maciej:2012:Automatic}. For instance, if a link or switch connected to an authentication server fails, the new host cannot join the network as the requests are not reaching the server. Similarly as shown in Figure \ref{Figure: Chapter: Use case Section: Fault tolerant} the active routing path between H4 and H6 is along Sw3, Sw1, and Sw5. During operation the link between Sw1 and Sw3 fails which results in connectivity loss. The communication between H3 and H7 stops as there is no packet forwarding along the affected path. An OpenFlow network can re-establish communication by re-routing and installing the flows on redundant path along Sw3 and Sw5. Despite restoring the network in case of an outage a fault tolerant OpenFlow network drop packets which can be critical for certain network services. Therefore, network restoration time is also an important factor to consider while designing a fault tolerant OpenFlow network.
+
+\subsection{Use Case: Network Security}
+\label{Chapter:Use Case and Requirements section:Access control}
+
+For an OpenFlow network, network security is an essential service to filter out malicious traffic and to prevent unauthorized access to network entities such as authentication servers. Furthermore, the SDN controller needs to be secured against malicious attacks of DDoS as it a single network entity managing the underlying OpenFlow network. Failure of an SDN controller can cause disruption in normal operation of the network as the controller instructs and listens to queries forwarded by the OpenFlow switches. Moreover, the controller also needs to maintain network access control to prevent unauthorized access by filtering the network traffic. For instance, in a medium sized campus network there is a need to control the network access of guests while providing different access level to faculty members. As shown in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network}, H1 is a guest host that tries to communicate with a server at Sw4. The SDN controller needs to prevent the access by dropping the guest packets at Sw3. In addition, the controller allows the faculty host, referred as H2, to access the server.
+
+The controller maintains the network control by filtering the traffic  through an access-list. In legacy networks the security policies are statically configured across many network nodes. Furthermore, the security policy of an access-list is implemented without considering the context of an application such as streaming of videos. In an SDN environment, the centralized SDN controller enables the network administrator to enforce the security policies including access-list with great ease as the controller is able to distribute the firewall functionality in the OpenFlow switches.
+
+\begin{figure}
+	\centering
+	\includegraphics*[width=\textwidth] {looped_network_server_access-list}
+	\caption{Using traffic filters to prevent network access in an SDN Network}
+	\label{Figure: Chapter: Use case Section: Use cases access-list}	
+\end{figure}
+
+\subsection{Use Case: Network Management in Software-Defined Networks}
+\label{Chapter:Use Case and Requirements section:Network Debugging and Management}
+
+Software-defined networks are required to manage and control the network through a centralized controller. A medium sized campus network consist of multiple nodes and servers as given in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network}. A traditional legacy campus network is difficult to manage due to de-centralized network architecture, heterogeneous devices, and vendor specific switch/router interfaces. Moreover, introducing new services is a manual process where  individual network elements are configured for supporting network functionalities. 
+
+SDN simplifies the network management as it forms a layered network architecture with well defined interfaces between the components such as the applications (e.g. routing), the controller, and the switches. Network management can be expressed as high level policies where the controller can configure the network through the centralized controller. The efficacy of a centralized controller results in a central management system where high level network policies such as routing are mapped to low level configuration polices in an OpenFlow switch. The controller can configure all the network devices in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} using an SDN application.
+
+Furthermore, an SDN technology also provides better troubleshooting mechanism as compare to traditional networks. In traditional networks, the troubleshooting of router misconfiguration, faulty interfaces, and software bugs require accessing individual network devices. Moreover, the traditional networks use common tools (e.g. ping, traceroute, SNMP, and tcpdump), for tracking down root causes. On the contrary, the SDN provides layered network management where the trouble shooting can target different layers and the controller can react to these issues. 
+ 
+In Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} the controller can manage the network by maintaining a network-wide view that includes switch level topology and location of hosts. OpenFlow events can be programmed in controller application to trouble shoot and debug the network. For instance, traffic flow counters can monitor the flow table entries of Sw2 and an event can notify the controller when an upper threshold is reached. The controller can then react to it and change the routing policy that results in installing the flows on alternate paths. Similarly, an event can be used to debug and identify the link in cause of outages. 
+
+% %\subsection{Scenario: Network Isolation for Campus Networks }
+%\label{slicing}
+% %OpenFlow-based SDN can simplify the management of a campus network through network virtualization/slicing. Network virtualization is a mechanism to isolate certain class res the university network to isolate traffic among multiple tenants and operate logical networks over a single physical network.of traffic from other classes of traffic for administrative reasons[/cite]. A typical university network serves diverse tenants, including faculty, students, libraries and research centre. These individual tenants may need private addressing schemes that may overlap. 
+%\begin{figure}
+%	\centering
+%	\includegraphics*[scale=1] {network_slicing.jpg}
+%	\caption{SDN topology of Campus Network} 
+%	\label{fig:Campus Network}
+%\end{figure}
+
+%Network slicing enables the ability to divide an element into separately controlled groups of ports or a network into separate administrative domains. Network slicing divides a production network into logical slices. Each slice controls its own packet forwarding. Users or application can choose the control of their network traffic.  Production networks can run their own slices that are separate from slices used for testing and research. Researchers can perform experiments on their slice of the network without affecting the live network.\ref{fig:Campus Network} depicts a typical university network where a single physical network is shared by many diverse entities in a single location. Campus networks require logically partitioned networks, each with its own policy. These switches can enforce flexible policies to control and limit interaction among the logical networks
+
+%By programming the traffic forwarding rules across the data forwarding devices in \ref{fig:topology_2}, it becomes easy to implement network slicing.
+
+
+% %\subsection{Use Case: Application Aware Forwarding}
+% %\label{Traffic Engineering}
+% %With applications such as Facebook and YouTube competing with other campus applications such as registration of courses, networks need to prioritize and forward the traffic based on an application. While there are some attempts and technologies to provide this, SDN can provide a simpler and consistent way of identifying applications, and program the network to prioritize and forward it appropriately. 
+
+% %In order to prioritize certain applications I have made some changes to \ref{fig:topology_2} with addition of bandwidth parameters which result in figure \ref{fig:trafficengineering}. The topology consists of 4 switches 1, 2, 3 and 4 which are connected and form a loop network. A low-bandwidth path via switch s2 connects Host 1, 2 with Host 3 and 4. An alternate high bandwidth path exists from switch 3. Topology has two paths connecting sites a high-bandwidth path and a low-bandwidth path. For this use I am  sending an application on high bandwidth by prioritizing.
+
+% %\subsection{Scenario: Traffic Engineering for Campus Networks}
+% %\label{Chapter:UseCases and Requirements section: Usecase traffic engineering}
+
+% %After achieving OpenFlow routing, traffic engineering can be applied using the routing module. This use case discusses traffic engineering with respect to load balancing. Network traffic of campus network are prone to traffic variations at peak time for instance during registration of courses. Congested links can cause latency and delay for such requests. In order to resolve this issue an approach needs to be devised which involves that if the load on a particular link to switch exceeds upper threshold, the application request the controller to migrate the flow from one link to the other. Traffic statistics are sent to controller via packet-in messages. If the load on a switch drops below a lower threshold flows may be migrated to the previous link. In doing so, effective traffic engineering can be achieved across each link. This use case can be replicated on topology mentioned in \ref{fig:topology_2}.
+
+% % begin{figure}
+% %\centering
+% %\includegraphics[scale=0.75]{"traffic engineering"}
+% %\caption{Topology with Bandwidth parameters}
+% %\label{fig:trafficengineering}
+% %\end{figure}
+
+
+% %=============================
+\section{Requirements}
+% %============================
+\label{Chapter: Use cases and Requirements:Section:Requirements of Use Cases}
+
+The network requirements for an SDN solution in a small-to-medium sized network are deduced from these use cases. This Section provides an insight to these requirements as well as a road map to design and implement an SDN solution in existing networks.
+
+%%==============================
+\subsection{Routing}
+%%==============================
+\label{Chapter: Use cases and Requirements:Section: Routing Requirements}
+
+The use case described in \ref{Chapter:UseCases and Requirements section: Usecase OpenFlow Routing} requires routing service for traffic forwarding  among multiple hosts. The prerequisite requirements for enabling routing in an OpenFlow network as shown in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} are mentioned below:
+
+\begin{enumerate}
+	\item Topology discovery 
+	\item Loop free network construction
+	\item Selecting the routing path
+	\item Forwarding traffic	
+\end{enumerate}
+
+In the network topology of Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} H4 at Sw3 wants to communicate with H6 located at Sw5. The complete routing process from H4 and H6 is depicted in Figure \ref{Figure: Chapter: Use case Section: Use cases routing}. Initially, the controller needs to discover the network topology and calculate a Minimum Spanning Tree (MST) on it. The controller computes the routing path on this MST and finally installs the flows on the routing path along the switches Sw3, Sw1, and Sw5. Likewise, the flows are required for the return path of hosts H6 and H4 along Sw5, Sw1, and Sw3.  The routing requirement can be described as: \textit{To enable routing mechanism within an OpenFlow network that avoid network loops and install the flows along the routing paths}
+
+\begin{figure}
+	\centering
+	\includegraphics*[scale=0.6] {looped_network_2_server_routing_new}
+	\caption{Routing process in an OpenFlow network}
+	\label{Figure: Chapter: Use case Section: Use cases routing}	
+\end{figure}
+
+% %=========================================
+\subsubsection{Topology Discovery}
+% %=========================================
+\label{Chapter: Use cases and Requirements:Section: Routing Requirements: Subsection:Topology Discovery}
+Routing module maintains a network wide view by discovering the network elements such as switches, links, and connected ports. Topology discovery is the process of building the underlying physical topology as a logical one inside the controller serving two purposes. The routing module requires the topology details for computing the routing paths and running the spanning tree algorithm. In addition to this, it updates the controller regarding the changes happening in the network. For instance, network information in the events generated by adding/deleting of links, joining of new hosts etc., are provided by the topology module. Event handlers can be defined in the controller application for receiving these events. Topology discovery application of the Ryu controller uses Link layer distribution protocol (LLDP) for building the topology.
+
+In Figure \ref{Figure: Chapter: Use case Section: Use cases routing}, the Ryu controller periodically (e.g., every 1 seconds) sends LLDP frames as packet-out messages to all the OpenFlow switches. This instructs the switches to forward the LLDP frames to all the connected ports. In reply, the other switches sends the LLDP frame as packet-in message back to the controller. The controller examines the content through which it is able to identify the links. For instance, Sw2 forwards the LLDP frame received from the controller to Sw1 and Sw3. Sw1 and Sw3 sends this frame back to the controller as packet-in message. The controller examines the LLDP frame content and discovers the directly connected links, ports, and nodes between Sw2, Sw1, and Sw3. This information is used to maintain adjacency list of network links while the controller builds a complete network topology. Moreover, the controller can update its network topology view in case of an outages using LLDP frames. For instance, if a link between the switches Sw2 and Sw1 breaks down the controller is unable to receive the LLDP frames of Sw2 from Sw1 and similarly Sw1 frame from Sw2 within specified time. As a result a link down event is generated to notify the controller about the affected links. The requirements of discovering the topology can be summarized as \textit{maintaining a network wide view for enabling the routing service and monitoring topology changes in an OpenFlow network} 
+% %=======================================
+\subsubsection{Spanning Tree}
+% %=======================================
+\label{Chapter: Use cases and Requirements:Section: Routing Requirements: Subsection: Spanning Tree}
+
+The topology shown in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} has a looped connectivity between all the OpenFlow switches. A spanning tree algorithm can avoid loops using the discovered topology. One of the two approaches for calculating the spanning tree is to implement Spanning Tree Protocol (STP) 802.1D as an SDN controller application. STP avoids Layer-2 loops by blocking the redundant ports of the OpenFlow switches. The process involves selecting the root nodes and forwarding ports by sending Bridge Protocol Data Unit (BPDUs) that contains priority and MAC address field. Sw 2 can be selected as the root node of the spanning tree having high priority. Furthermore, the spanning tree is computed by starting from the root node and branching to the other non-root switches where the redundant ports are blocked. In addition to this, STP can recalculate the spanning tree in case of the topology change which includes network outages or adding new switches.
+
+STP was initially designed for avoiding loops in legacy distributive networks. STP is not suitable for the centralized SDN approach as processing of BPDUs can overload the controller and reduce its processing performance. Therefore, an alternate approach is required that calculates the MST for a centralized OpenFlow network avoiding loops as shown in Figure \ref{Figure: Chapter: Use case Section: Use cases routing}. The requirement of spanning tree component is to \textit{construct a MST on the discovered network topology required by the routing module}.
+
+% %=======================================
+\subsubsection{Routing Paths}
+% %=======================================
+
+After achieving a loop free network topology, a routing path needs to be computed between the end hosts. This can be achieved by a routing algorithm that computes a specific choice of route for instance, Dijkstra algorithm calculates the shortest path between the hosts. Furthermore, the optimal routing requirement of use case \ref{Chapter:Use Case and Requirements section:Shortest Path Routing} can also be taken in consideration when implementing the routing algorithm. For instance, in case of multiple paths the routing algorithm takes into account specific requirements to achieve the optimal path. This can include performance metrics such as minimum cost and distance from the destination. The cost parameters such as bandwidth metric can avoid congested paths whereas shortest routing path can be achieved using distance metric through Bellman-Ford algorithm. In Figure \ref{Figure: Chapter: Use case Section: Optimal Routing} there are multiple routing paths between hosts connected to Sw3 and Sw5. The two paths are highlighted where the purple coloured path is the shortest of the two paths.     
+
+\begin{figure} [ht]
+	\centering
+	\includegraphics*[width=\textwidth] {shortest_path}
+	\caption{Selecting routing paths in an OpenFlow networks}
+	\label{Figure: Chapter: Use case Section: Optimal Routing}	
+\end{figure}
+
+\subsubsection{Policy based Routing}
+
+The use case \ref{Chapter:Use Case and Requirements section:Network Debugging and Management} provides an insight to the flow issues that an OpenFlow network can encounter. Therefore, the controller application requires a mechanism to minimize the number of flow entries in an OpenFlow switch. This can be achieved by categorizing the policies as high level such as routing and low level such as switch configuration. The network policies consider the network as One-Big-Switch when managing and installing the flow policy rules. One of the key advantage of policy based routing is installing the flow rules effectively. One-Big-Switch abstraction provides an opportunity to map high level policies such as routing to low level policies such as flow installation. The requirement for achieving the One-Big-Switch abstraction is to divide the routing process into two policies. The first as high level policy such as routing algorithm that provides the global view of the network including network topology details and real time network statistics. The low level policy such as installing end flows utilize the information and divide the number of flows across the network. The requirement of policy based routing can be classified as \textit{minimizing number of flow entries in the flow table of the OpenFlow switches} 
+
+
+% %=======================================
+\subsubsection{Forwarding }
+% %=======================================
+
+Forwarding is the final requirement for enabling the routing service in an OpenFlow network. The requirement is to install the OpenFlow entries according to the computed routing path. This includes translating the routing path as forwarding rules using flow entries. A forwarding flow entry needs to provide the information such as next hop for the routing path as well as output port for reaching the next hop.
+
+% %=======================================
+\subsubsection {ARP Handler }
+% %=======================================
+\label{Chapter: Use cases and Requirements:Section: Routing Requirements: Subsection: Arp Handler}
+
+As discussed in use cases \ref{chapter:Usecases and Requirements:section: Traffic Forwarding} and \ref{Chapter:UseCases and Requirements section: Usecase OpenFlow Routing} the first initial requirement to enable communication between the hosts is to resolve the MAC address of the destination host. Address Resolution Protocol (ARP) is used to resolve the Layer-2 MAC addresses. An ARP handler in the controller is required to handle the ARP packets which can be achieved by the following two approaches. Flooding the ARP packet at Layer-2 or by sending unicast ARP request to the destination host. In the first approach the controller instructs the switch to flood the ARP packet whereas in the latter approach the controller commands the switch to send a unicast ARP packet to the destination host. After receiving the unicast ARP reply from the host the controller can construct and forward an ARP reply back to the originating host. However, in case of Layer-3 routing the controller needs to respond differently to the ARP requests. In routing, the controller sends the MAC address of the connected gateway interface of the host. For instance, in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} H1 wants to communicate with the hosts belonging to different networks. Therefore, H1 sends an ARP request in order to resolve the gateway interface MAC address of Sw2. The controller receives the ARP packet and sends an ARP reply containing the gateway MAC address of the switch interface. The requirement of ARP handler is to\textit{ enable the controller to handle the ARP requests intelligently as per the requirements of Layer-2 switching and Layer-3 routing}.
+% %==============================================
+\subsubsection{Time to Live Handler}
+% %===============================================
+\label{Chapter: Use cases and Requirements:Section: Routing Requirements: Subsection: Time To Live}
+
+Routing modules requires a component such as Time To Live (TTL) to prevent the packet to circulate indefinitely in the network. A default numerical value such as 64 is required by the TTL component to keep a check on the routing packets. TTL decrements the numerical value by 1 as the packet transverses a node in the network. If the TTL value reaches 0 the packet needs to be dropped while sending an ICMP unreachable message to the source host.
+% %==============================================
+\subsubsection{ICMP Handler}
+% %==============================================
+\label{Chapter: Use cases and Requirements:Section: Routing Requirements: Subsection: ICMP Handler}
+An Internet Control Message Protocol (ICMP) can be used to check Layer-3 connectivity and for notifying the network devices in case of reachability issues. The ICMP protocol sends the messages by using ICMP echo-request and ICMP echo- reply. An ICMP handler is required for generating the ICMP messages in the controller. For instance, it is considered that a packet in the topology \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} is unable to find the destination host. Furthermore, it is a requirement that when the TTL value reaches 0 the source host needs to be informed. To achieve this, an ICMP handler is required that sends an ICMP message to the source host upon expiry of TTL value.
+
+% %\subsubsection{Summary}Topology discovery, spanning tree and TTL handler all serve important functionality for the routing module. Discovery function is required to discover the topology whereas spanning tree is necessary in the looped networks. All the ports that appear in the spanning tree are considered valid. Other ports are considered as forbidden since they cause a loop. Ports which are not connected to switches are assumed to be connected to hosts and therefore are always being considered as valid ones. Routing module sends packets between source and destination along the loop free path.
+
+%%==============================
+\subsection{Fault Tolerant and Resilient Network}
+%%==============================
+\label{Chapter: Use cases and Requirements:Section: Fault Tolerance and Resilient Routing}
+Fault tolerant network mentioned in use case \ref{Chapter:Use Case and Requirements section:Reliable and Scalable SDN Architecture} requires network availability in case of outages. During the link or node failure the controller needs to perform two action, calculate an alternate backup path and delete the active flow from the OpenFlow switches. The traffic needs to be re-routed in minimum amount of time to avoid packet loss. Two different approaches can be deployed to achieve re-routing. In the first approach a link down event is required to notify the controller about the outage. The controller needs to react to the event by calculating and installing the flow entries along the backup path while deleting the affected flows. This can result in packet loss during the calculation and installation of the flow entries. In order to minimize the packet loss a second approach of resilient routing can be deployed. This is achieved through the proactive controller that installs the backup path along with the initial routing path. The two paths can be prioritized in the OpenFlow switches as an active and backup path. In resilient routing if a link or node goes down the traffic can be re-routed on the backup path without any packet loss. The requirement is summarized as \textit{ensuring network availability and re-routing the traffic in case of network outage in minimum amount of time}.
+
+
+%%==============================
+\subsection{Network Security}
+%%==============================
+\label{Chapter: Use cases and Requirements:Section: Firewall}
+
+Firewall provides security for an OpenFlow network as mentioned in use case \ref{Chapter:Use Case and Requirements section:Access control}. A firewall can be categorized into two types, the first type for controlling the internal network traffic such as access-list and the second type for detecting and preventing external network attacks (i.e DDoS).
+
+% %==============================================
+\subsubsection{Access-list}
+% %==============================================
+
+An access-list is required for filtering the network traffic in an OpenFlow network. Furthermore, an access-list can also be configured to filter incoming and outgoing network traffic. The packets are forwarded or dropped at OpenFlow switches according to the specified criteria. A basic access-list criteria analyze the data packets for network parameters such as L2/L3 headers (i.e., MAC and IP address) to prevent unauthorized access.
+However, in order to take advantage of SDN fine-grained policy the access-list also needs to cater the requirements of filtering the traffic  on per flow basis. This can be achieved by adding an access-list criteria to filter the traffic on upper-layered protocol. For instance, a 5-Tuple access-list can meet these requirements as it filters the traffic on IP addresses, transport protocol as well as input ports. 
+ 
+To enable security in an OpenFlow network, the Ryu controller requires a firewall module consisting of an access-list. Incoming packet from the OpenFlow switch needs to be verified against the access-list. If an entry for a packet is found then a drop flow needs to be installed in the OpenFlow switches. Moreover, the default policy is \textit{permit all} in case a packet does not match any of the entry in the internal network. Access-lists can also be used in OpenFlow switches positioned between the SDN internal network and an external network such as the Internet. In this case an access-list default criteria needs to be \textit{deny all} as it is impossible to maintain access-list entries for the external network traffic. Moreover, only the specified network entries can be accessed from the Internet. For instance, as given in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} it is considered that Sw2 is also connected to the external network of the Internet. H2 at Sw2 request to reach a destination web-server on the Internet. The controller realizes that the destination traffic is of external network so it matches the Sw2 against the second access-list. There is a match entry as H2 is allow to access the Internet and a forwarding flow rule is installed both ways from H2 to web-server and web-server to H2. Furthermore, deny all policy restricts and drops the traffic from other external web-servers. 
+
+%%==============================
+\subsubsection{Intrusion Detection System (IDS)}
+%%==============================
+Network security use case in \ref{Chapter:Use Case and Requirements section:Access control} also requires the prevention of malicious traffic such as DDoS attack. In order to mitigate the DDoS attack in which the controller is flooded with high number of connectivity request, an IDS module is required. IDS needs to monitor the packet counter and when the flows entries have exceeded the predefined threshold a drop flow needs to be installed in the OpenFlow switch or as an alternate the controller can redirect the traffic to other node for dropping the packets. 
+
+%%==============================
+\subsection{DHCP as a Network Service}
+%%==============================
+
+Dynamic Host Configuration Protocol (DHCP) provides two services for managing an OpenFlow network: configuring the network entities and providing hosts information to the controller. The SDN controller configures the network entities including hosts and OpenFlow switches by assigning IP parameters such as IP address, gateway, and subnet mask dynamically. Moreover, the DHCP module provides information of hosts including Layer-2 address, IP parameters, OpenFlow switch location, and attached port. This information is required by the controller for routing and installing flow rules in the OpenFlow switches. 
+
+In an OpenFlow network, the DHCP service can be provisioned using two approaches, deploying legacy DHCP server or programming an application for Ryu controller. In the first approach the server can be connected to the OpenFlow switch as shown in Figure \ref{Figure: Chapter: Use case Section: Use cases for small to medium sized network} where a DHCP server is connected to Sw4. The controller needs to provide a connectivity path that includes installing related DHCP flows to enable bi-directional communication between the client and the server. In the second approach, the controller application is programmed for providing DHCP services as a separate module without the need of a dedicated hardware.
+
+% %One of the important aspect in automating the SDN controller process involves configuring the hosts dynamically through a DHCP module programmed in the controller. The DHCP provides network service with out support of traditional DHCP services. IP address to the hosts and clients needs to be assigned dynamically through a server. Dynamic host configuration protocol allows IP configuration of the host dynamically from IP pool. In order to successfully install DHCP the controller needs to take care of the packets that were sent to it. This includes DHCP discovery, DHCP request, DHCP offer and DHCP acknowledgement.
+
+% %For the topology \ref{fig:Basic} proactive rule is required in Open flow switches that will forward the DHCP messages to the Ryu controller. The DHCP server needs to be connected to Ryu SDN controller and will work by intercepting DHCP packets on Ryu SDN controller. The switch will forward the DHCP packet to Ryu, at which point the DHCP Server module in Ryu will handle the DHCP message and send a response out of the port on which the original packet was received. The requirement of DHCP modules is \textit{ DHCP module configure the hosts while handling  DHCP messages of discovery, request, offer and acknowledgement}
+
+%%==============================
+\subsection{Network Debugging}
+%%==============================
+
+Network debugging is an essential requirement for managing an OpenFlow network as discussed in use case \ref{Chapter:Use Case and Requirements section:Network Debugging and Management}. Event handlers are required by the controller for debugging the network that includes informing the controller about network changes. Furthermore, the controller can react to the particular events and take measures according to the network requirements. The network administrators can dump and logged these events to external file for finding the root cause of the issue and to prevent it. For instance, in Figure \ref{Chapter: Use cases and Requirements:Section:Requirements of Use Cases} a network administrator mistakenly modify the bandwidth parameter of the link between Sw3 and Sw5. A port modification event involving respective Sw3 and Sw5 ports is generated which is logged and used by the controller for preventing this issue the next time.
+
+
+%%==============================
+
+% %\subsection{Load Balancing}
+%%==============================
+
+% %Load balancing in terms of computer networks is required to balance and distribute the network traffic among multiple network nodes switches, servers or through redundant paths. Load balance would be deployed for the scenario of the campus network mentioned in \ref{loadbalancing}.
+ 
+% %\subsubsection{Motivation}  
+
+% %Load balancing in legacy networks is achieved by deploying dedicated and expensive machines known as load- balancers [/cite]/.Furthermore, network protocols required for load balancing are proprietary like Gateway Load Balancing Protocol (GLBP) which is a Cisco proprietary protocol [/cite]. SDN provides an alternate solution to achieve load balancing in network which is cost-effective and independent of propriety based protocols.
+
+% %\subsubsection{Requirement}
+
+% %Ryu controller is required to dynamically allocate traffic to the least congested link of the switch upon receiving server connectivity request. In order to achieve this task a module is to be written that creates controller logic which sends that packets to alternate links depending on the current bandwidth used by each link.
+
+% %Topology in figure \ref{fig:topology_2} will be used for this use case. The topology consists of four hosts namely h1,h2,h3 and h4 connected to two servers via OpenFlow switch. The controller polls the OpenFlow switch. The switch sends traffic statistics  about the flow and corresponding port.The statistics allow the controller to know the total amount of data sent and received on each link for the time since the previous poll. This allows the controller to calculate the current congestion levels on each link. When the upper threshold is reached the traffic is  required to be shifted to alternate port and the load is balanced across both the links.
+    
+%%==============================
+% %\subsection{Network Slicing}
+%%==============================    
+
+% %Network slicing is required to achieve traffic isolation for use case \ref{slicing}. In order to slice the network in topology \ref{fig:topology_2} we need to block communication between hosts in different slices. I will implement this functionality by inserting drop rules at certain network switches. For example, host h1 should not be able to communicate to host h2. To implement this restriction, I will write OpenFlow rules that provide this isolation. The controller will require to use each switch's datapath ID to write flow rules to the appropriate switch.    
+    
+%%==============================
+% %\subsection{Traffic Engineering}
+%%==============================
+
+% %In order to prioritize the network traffic as described in use case \ref{Traffic Engineering}. A Ryu module will be written to complete a traffic engineering requirement for a mininet topology \ref{fig:trafficengineering}. The topology \ref{fig:trafficengineering} consists of 4 switches 1, 2, 3 and 4 they are connected with each other in the loop. Video traffic is to be prioritized for the network by sending all the video traffic over the high bandwidth path, and sending all the other traffic over the default low bandwidth path.
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
